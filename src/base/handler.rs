@@ -1,11 +1,12 @@
 use chrono::Local;
+use futures::future::try_join_all;
 use serenity::{
     all::{CacheHttp, Context, CreateMessage, EventHandler, Ready, ResumedEvent},
     async_trait,
 };
 use tokio::time::sleep;
 
-use crate::{get_items, Config, Error, ErrorKind, Items, Result};
+use crate::{get_events, Config, Entry, Error, ErrorKind, Events, Result};
 
 pub struct Handler {
     cfg: Config,
@@ -18,33 +19,52 @@ impl Handler {
 
     async fn _routine(&self, ctx: &Context) -> Result<()> {
         // retrieve and filter the events from this current week
-        let new_items = get_items(&self.cfg).await?;
+        let new_events = get_events(&self.cfg).await?;
 
         // retrieve current map of data
         let mut data = ctx.data.write().await;
-        let cnt_items = data
-            .get_mut::<Items>()
+        let cnt_events = data
+            .get_mut::<Events>()
             .ok_or(Error::from(ErrorKind::Unexpected))?;
 
-        // add/replace new/updated items
-        for item in new_items {
-            cnt_items.insert(item.title().to_string(), item);
+        // add/replace new/updated Events
+        for value in new_events {
+            let key = value.title().to_string();
+
+            if let Some(entry) = cnt_events.get_mut(&key) {
+                if entry.date() < value.date() {
+                    entry.update(value);
+                }
+                continue;
+            }
+            cnt_events.insert(key, Entry::new(value));
         }
 
-        // filter distant events
+        // filter and map raw info for each event
         let now = Local::now();
-        let upcoming = cnt_items
-            .values()
-            .filter(|item| (item.date() - now).num_hours() <= 1);
+        let upcoming = cnt_events.values_mut().filter_map(|event| {
+            (!event.is_flagged() && (event.date() - now).num_hours() <= 1).then_some({
+                event.flag();
+                event.to_string()
+            })
+        });
 
-        // the configured channel
-        let channel = ctx.http().get_channel(self.cfg.channel_id()).await?.id();
+        // directly retrieve users
+        let users = try_join_all(
+            self.cfg
+                .users()
+                .into_iter()
+                .map(|user| ctx.http().get_user(*user)),
+        )
+        .await?;
 
-        // send updates to channel
-        for item in upcoming {
-            channel
-                .send_message(ctx.http(), CreateMessage::new().content(item))
-                .await?;
+        // send each new event to each user
+        for raw_event in upcoming {
+            let builder = CreateMessage::new().content(raw_event);
+
+            for user in users.as_slice() {
+                user.dm(ctx.http(), builder.clone()).await?;
+            }
         }
         Ok(())
     }
