@@ -28,7 +28,7 @@ pub enum Impact {
 
 #[serde_as]
 #[derive(Clone, Deserialize, Debug)]
-pub struct Item {
+pub struct Event {
     title: String,
     country: Country,
     date: DateTime<Local>,
@@ -40,7 +40,7 @@ pub struct Item {
     url: String,
 }
 
-impl Item {
+impl Event {
     pub fn title(&self) -> &str {
         &self.title
     }
@@ -70,7 +70,7 @@ impl Item {
     }
 }
 
-impl std::fmt::Display for Item {
+impl std::fmt::Display for Event {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = format!(
             "`{:?}`  |  **{:?}**  |  [{}]({})",
@@ -88,11 +88,5 @@ impl std::fmt::Display for Item {
             s.push_str(&format!("  |  `{}`", previous));
         }
         f.write_str(&s)
-    }
-}
-
-impl Into<String> for &Item {
-    fn into(self) -> String {
-        self.to_string()
     }
 }
