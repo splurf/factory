@@ -20,7 +20,7 @@ version = "0.12.4"
 features = ["json"]
 
 [dependencies.serde]
-version = "1.0.202"
+version = "1.0.203"
 features = ["derive"]
 
 [dependencies.serde_with]
@@ -32,6 +32,9 @@ features = ["derive"]
 
 [dependencies.chrono]
 version = "0.4.38"
+
+[dependencies.futures]
+version = "0.3.30"
 
 [profile.release]
 lto = true
