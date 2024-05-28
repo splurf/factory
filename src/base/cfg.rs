@@ -1,5 +1,5 @@
 use clap::Parser;
-use serenity::all::{ChannelId, GatewayIntents};
+use serenity::all::{GatewayIntents, UserId};
 use std::{str::FromStr, time::Duration};
 
 use crate::Country;
@@ -10,10 +10,10 @@ pub struct Config {
     #[arg(short, long)]
     token: String,
 
-    #[arg(required = true)]
-    channel_id: ChannelId,
+    #[arg(required = true, num_args = 1..)]
+    users: Vec<UserId>,
 
-    #[arg(required = true, num_args = 1.., value_parser = Country::from_str, value_enum)]
+    #[arg(required = true, num_args = 1.., value_parser = Country::from_str, value_enum, last = true)]
     countries: Vec<Country>,
 }
 
@@ -30,8 +30,8 @@ impl Config {
         &self.token
     }
 
-    pub const fn channel_id(&self) -> ChannelId {
-        self.channel_id
+    pub fn users(&self) -> &[UserId] {
+        self.users.as_slice()
     }
 
     pub fn countries(&self) -> &[Country] {
