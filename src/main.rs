@@ -15,7 +15,7 @@ async fn main() -> serenity::Result<()> {
             .data
             .write()
             .await
-            .insert::<Items>(Default::default());
+            .insert::<Events>(Default::default());
     }
 
     client.start_autosharded().await

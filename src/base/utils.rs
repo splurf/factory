@@ -1,13 +1,13 @@
 use chrono::{DateTime, Local};
 use reqwest::Client;
 
-use crate::{Config, ErrorKind, Item, Result};
+use crate::{Config, ErrorKind, Event, Result};
 
-fn is_valid_item(cfg: &Config, item: &Item, now: DateTime<Local>) -> bool {
-    cfg.countries().contains(&item.country()) && item.is_normal() && now < item.date()
+fn is_valid_event(cfg: &Config, event: &Event, now: DateTime<Local>) -> bool {
+    cfg.countries().contains(&event.country()) && event.is_normal() && now < event.date()
 }
 
-pub async fn get_items(cfg: &Config) -> Result<impl Iterator<Item = Item> + '_> {
+pub async fn get_events(cfg: &Config) -> Result<impl Iterator<Item = Event> + '_> {
     let client = Client::default();
     let res = client.get(Config::ENDPOINT).send().await?;
 
@@ -15,11 +15,11 @@ pub async fn get_items(cfg: &Config) -> Result<impl Iterator<Item = Item> + '_> 
         return Err(ErrorKind::ConnectionFailed.into());
     }
 
-    let json = res.json::<Vec<Item>>().await?;
+    let json = res.json::<Vec<Event>>().await?;
 
     let data = json
         .into_iter()
-        .filter(|item| is_valid_item(cfg, item, Local::now()));
+        .filter(|event| is_valid_event(cfg, event, Local::now()));
 
     Ok(data)
 }
