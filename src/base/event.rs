@@ -73,19 +73,20 @@ impl Event {
 impl std::fmt::Display for Event {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut s = format!(
-            "`{:?}`  |  **{:?}**  |  [{}]({})",
-            self.country(),
+            "`{}`  |  **{:?}**  |  [**{:?}** {}](<{}>)",
+            self.date().format("%H:%M"),
             self.impact,
+            self.country(),
             self.title(),
             self.url(),
         );
 
         if let Some(forecast) = self.forecast() {
-            s.push_str(&format!("  |  `{}`", forecast));
+            s.push_str(&format!("  |  `Forecast = {}`", forecast));
         }
 
         if let Some(previous) = self.previous() {
-            s.push_str(&format!("  |  `{}`", previous));
+            s.push_str(&format!("  |  `Previous = {}`", previous));
         }
         f.write_str(&s)
     }
