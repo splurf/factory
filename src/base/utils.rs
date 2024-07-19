@@ -5,8 +5,8 @@ use crate::{Config, ErrorKind, Event, Result};
 
 fn is_valid_event(cfg: &Config, event: &Event, now: DateTime<Local>) -> bool {
     cfg.countries().contains(&event.country())
-        && event.is_normal()
-        && (event.date() - now).num_hours() == 1
+        && event.impact() >= cfg.impact()
+        && (event.date() - now).num_hours() == cfg.notice()
 }
 
 pub async fn get_events(cfg: &Config) -> Result<impl Iterator<Item = Event> + '_> {

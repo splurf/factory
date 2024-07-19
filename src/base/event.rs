@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_with::{serde_as, NoneAsEmptyString};
 use strum::EnumString;
 
-#[derive(Clone, Copy, Deserialize, Debug, EnumString, PartialEq, ValueEnum)]
+#[derive(Clone, Copy, Debug, Deserialize, EnumString, PartialEq, ValueEnum)]
 pub enum Country {
     AUD,
     CAD,
@@ -18,16 +18,19 @@ pub enum Country {
     All, // hmmm
 }
 
-#[derive(Clone, Copy, Deserialize, Debug, PartialEq)]
+#[derive(
+    Clone, Copy, Debug, Default, Deserialize, EnumString, PartialEq, PartialOrd, ValueEnum,
+)]
 pub enum Impact {
-    Holiday = 0, // hmm
-    Low = 1,
-    Medium = 2,
-    High = 3,
+    #[default]
+    Holiday,
+    Low,
+    Medium,
+    High,
 }
 
 #[serde_as]
-#[derive(Clone, Deserialize, Debug)]
+#[derive(Clone, Debug, Deserialize)]
 pub struct Event {
     title: String,
     country: Country,
@@ -53,8 +56,8 @@ impl Event {
         self.date
     }
 
-    pub const fn is_normal(&self) -> bool {
-        self.impact as u8 > 0
+    pub const fn impact(&self) -> Impact {
+        self.impact
     }
 
     pub fn forecast(&self) -> Option<&str> {
