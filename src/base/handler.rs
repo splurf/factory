@@ -71,7 +71,7 @@ impl Handler {
         Ok(())
     }
 
-    async fn _routine(&self, ctx: &Context) -> Result<()> {
+    async fn _routine(&self, ctx: &Context) -> Result {
         // retrieve and filter the events from this current week
         let new_events = get_events(&self.cfg).await?;
 

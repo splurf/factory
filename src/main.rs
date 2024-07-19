@@ -3,7 +3,7 @@ mod base;
 use base::*;
 
 #[tokio::main]
-async fn main() -> serenity::Result<()> {
+async fn main() -> Result {
     let cfg = Config::new();
 
     let mut client = serenity::Client::builder(cfg.token(), Config::INTENTS)
@@ -18,5 +18,5 @@ async fn main() -> serenity::Result<()> {
             .insert::<Events>(Default::default());
     }
 
-    client.start_autosharded().await
+    client.start_autosharded().await.map_err(Into::into)
 }
